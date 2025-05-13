@@ -1,5 +1,5 @@
 # LeiKa Search Tool
-TEST
+
 Dieses Projekt bietet eine  Weboberfläche zur Suche und Anzeige von LeiKa-Leistungen auf Basis der öffentlichen FIM-Datenplattform.
 
 ## 🔍 Funktionen
