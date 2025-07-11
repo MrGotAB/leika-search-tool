@@ -4,7 +4,8 @@ Dieses Projekt bietet eine  Weboberfläche zur Suche und Anzeige von LeiKa-Leist
 
 ## 🔍 Funktionen
 
-- Abfrage über `fimportal.de`-API per Titel
+- Abfrage über `fimportal.de`-API per Full-Text-Search query
+- Swagger UI - https://www.fimportal.de/docs
 - Anzeige der LeiKa-ID und erzeugte URN
 - Pagination über alle Ergebnisse
 - Direkte Kopierfunktion der URN

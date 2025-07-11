@@ -101,7 +101,7 @@
       infoDiv.textContent = "🔍 Suche läuft…";
       resultsDiv.innerHTML = "";
       try {
-        const url = `https://www.fimportal.de/api/v0/services?title=${encodeURIComponent(term)}&order_by=erstellt_datum_zeit_desc&offset=0&limit=200`;
+        const url = `https://www.fimportal.de/api/v0/services?fts_query=${encodeURIComponent(term)}&order_by=relevance&offset=0&limit=200`;
         const res = await fetch(url, { headers: { accept: "application/json" }});
         const data = await res.json();
 
