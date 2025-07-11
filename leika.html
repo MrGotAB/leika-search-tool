@@ -1,116 +1,88 @@
 <!DOCTYPE html>
-
 <html lang="de">
 <head>
-<meta charset="utf-8"/>
-<title>Suche nach LeiKa-Leistung</title>
-<style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f7f9;
-      min-height: 100vh;
-      padding: 40px 20px;
-    }
-    .container {
-      max-width: 700px;
-      margin: 0 auto;
-      background: #fff;
-      padding: 40px;
-      border-radius: 16px;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-    }
-    h1 {
-      color: #2e6da4;
-      font-size: 28px;
-      margin-bottom: 20px;
-      text-align: center;
-    }
-    input {
-      padding: 14px;
-      font-size: 16px;
-      width: 100%;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-    }
-    .info {
-      font-size: 0.95rem;
-      color: #444;
-      margin: 16px 0;
-    }
-    .results {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-    .card {
-      border: 1px solid #d0d7de;
-      border-radius: 12px;
-      padding: 16px;
-      background: #fafafa;
-      transition: background 0.3s;
-      text-align: left;
-      text-decoration: none;
-    }
-    .card:hover {
-      background: #f0f4f8;
-    }
-    .card-title {
-      font-weight: 600;
-      font-size: 1.05rem;
-      color: #2e6da4;
-      margin-bottom: 6px;
-    }
-    .card-id,
-    .card-urn {
-      font-size: 0.9rem;
-    }
-    .card-urn code {
-      background: #e8eef3;
-      padding: 2px 6px;
-      border-radius: 4px;
-    }
-  
-    .pagination {
-      display: flex;
-      justify-content: center;
-      margin-top: 24px;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-    .pagination button {
-      background: #fff;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      padding: 6px 12px;
-      cursor: pointer;
-      font-size: 14px;
-    }
-    .pagination button.active {
-      background: #2e6da4;
-      color: white;
-      border-color: #2e6da4;
-    }
-    .pagination button:hover {
-      background: #e9eef2;
-    }
-</style>
+    <meta charset="utf-8"/>
+    <title>LeiKa-Suche (API-Version)</title>
+    <style>
+        body {
+          font-family: Arial, sans-serif;
+          background-color: #f4f7f9;
+          min-height: 100vh;
+          padding: 40px 20px;
+        }
+        .container {
+          max-width: 700px;
+          margin: 0 auto;
+          background: #fff;
+          padding: 40px;
+          border-radius: 16px;
+          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+          color: #2e6da4;
+          font-size: 28px;
+          margin-bottom: 20px;
+          text-align: center;
+        }
+        input {
+          padding: 14px;
+          font-size: 16px;
+          width: 100%;
+          border-radius: 8px;
+          border: 1px solid #ccc;
+        }
+        .info {
+          font-size: 0.95rem;
+          color: #444;
+          margin: 16px 0;
+        }
+        .results {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+        .card {
+          border: 1px solid #d0d7de;
+          border-radius: 12px;
+          padding: 16px;
+          background: #fafafa;
+          transition: background 0.3s;
+          text-align: left;
+          text-decoration: none;
+        }
+        .card:hover {
+          background: #f0f4f8;
+        }
+        .card-title {
+          font-weight: 600;
+          font-size: 1.05rem;
+          color: #2e6da4;
+          margin-bottom: 6px;
+        }
+        .card-id,
+        .card-urn {
+          font-size: 0.9rem;
+        }
+        .card-urn code {
+          background: #e8eef3;
+          padding: 2px 6px;
+          border-radius: 4px;
+          cursor: pointer;
+        }
+    </style>
 </head>
 <body>
 <div class="container">
-<h1>Suche nach LeiKa-Leistung</h1>
-<input id="searchInput" placeholder="z. B. Gewerbeanmeldung" type="text"/>
-<div class="info" id="info"></div>
-<div class="results" id="results"></div><div class="pagination" id="pagination"></div>
+    <h1>LeiKa-Suche (API-basiert)</h1>
+    <input id="searchInput" placeholder="z. B. Belehrung" type="text"/>
+    <div class="info" id="info"></div>
+    <div class="results" id="results"></div>
 </div>
 <script>
     const input = document.getElementById("searchInput");
     const resultsDiv = document.getElementById("results");
     const infoDiv = document.getElementById("info");
-    const paginationDiv = document.getElementById("pagination");
     let debounceTimeout;
-    let currentQuery = "";
-    let totalPages = 1;
-    let currentPage = 1;
 
     input.addEventListener("input", () => {
       clearTimeout(debounceTimeout);
@@ -118,145 +90,62 @@
       if (!query) {
         resultsDiv.innerHTML = "";
         infoDiv.textContent = "";
-        paginationDiv.innerHTML = "";
         return;
       }
       debounceTimeout = setTimeout(() => {
-        currentQuery = query;
-        searchLeika(currentQuery, 1);
+        searchLeikaAPI(query);
       }, 400);
     });
 
-    async function searchLeika(query, page) {
+    async function searchLeikaAPI(term) {
       infoDiv.textContent = "🔍 Suche läuft…";
       resultsDiv.innerHTML = "";
-      paginationDiv.innerHTML = "";
-      currentPage = page;
-
       try {
-        const base = "/api/leika/";
-        const params = new URLSearchParams({
-          term: query,
-          page: page.toString()
-        });
-        const url = `${base}?${params.toString()}`;
-        const res = await fetch(url);
-        const html = await res.text();
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, "text/html");
+        const url = `https://www.fimportal.de/api/v0/services?title=${encodeURIComponent(term)}&order_by=erstellt_datum_zeit_desc&offset=0&limit=200`;
+        const res = await fetch(url, { headers: { accept: "application/json" }});
+        const data = await res.json();
 
-        const countNode = doc.querySelector(".text-muted");
-        const countText = countNode?.textContent || "";
-        const totalMatch = countText.match(/(\d+)[\s\xa0]+Ergebnisse?/);
-        const totalHits = totalMatch ? parseInt(totalMatch[1], 10) : 0;
-        totalPages = Math.ceil(totalHits / 20);
-
-        const titles = Array.from(doc.querySelectorAll(".fs-5.fw-semibold.mb-0"));
-        const ids = Array.from(doc.querySelectorAll(".text-muted.d-flex.flex-row.align-items.gap-2"));
-
-        const pageResults = titles.map((titleNode, index) => {
-          const title = titleNode.textContent.trim();
-          const idText = ids[index]?.textContent || "";
-          const idMatch = idText.match(/\d{14}/);
-          const id = idMatch ? idMatch[0] : null;
-          const linkNode = titleNode.closest("a");
-          const link = linkNode ? `https://fimportal.de${linkNode.getAttribute("href")}` : "#";
-          return id ? { title, id, urn: `urn:de:fim:leika:leistung:${id}`, link } : null;
-        }).filter(Boolean);
-
-        if (pageResults.length === 0) {
+        if (!data.items || data.items.length === 0) {
           infoDiv.textContent = "❌ Keine Leistungen gefunden.";
           return;
         }
 
-        infoDiv.innerHTML = `📄 Gefundene Leistungen: <strong>${totalHits}</strong>`;
-        pageResults.forEach(r => {
-          
-        const card = document.createElement("div");
-        card.className = "card";
-        const urnId = `urn:de:fim:leika:leistung:${r.id}`;
-        card.innerHTML = `
-          <p class="card-title"><a href="${r.link}" target="_blank" rel="noopener noreferrer">${r.title}</a></p>
-          <p class="card-id">LeiKa-ID: <strong>${r.id}</strong></p>
-          <p class="card-urn">URN: <code onclick="copyUrn(this, '${r.urn}')" title='Klicken zum Kopieren'>${r.urn}</code></p>
-        `;
-        resultsDiv.appendChild(card);
+        infoDiv.innerHTML = `📄 Gefundene Leistungen: <strong>${data.total_count}</strong>`;
 
+        data.items.forEach(item => {
+          const title = item.title || item.leistungsbezeichnung || "(Kein Titel)";
+          const id = item.leistungsschluessel;
+          const urn = `urn:de:fim:leika:leistung:${id}`;
+          const link = `https://fimportal.de/services/${id}`;
+
+          const card = document.createElement("div");
+          card.className = "card";
+          card.innerHTML = `
+            <p class="card-title"><a href="${link}" target="_blank" rel="noopener noreferrer">${title}</a></p>
+            <p class="card-id">LeiKa-ID: <strong>${id}</strong></p>
+            <p class="card-urn">URN: <code onclick="copyUrn(this, '${urn}')" title='Klicken zum Kopieren'>${urn}</code></p>
+          `;
+          resultsDiv.appendChild(card);
         });
-
-        renderPagination();
-      } catch (error) {
-        console.error("Fehler beim Laden der Seite:", error);
-        infoDiv.textContent = "❌ Fehler beim Laden.";
+      } catch (e) {
+        console.error("API-Fehler:", e);
+        infoDiv.textContent = "❌ Fehler beim Abrufen.";
       }
     }
 
-    function renderPagination() {
-      paginationDiv.innerHTML = "";
-      if (totalPages <= 1) return;
-
-      const maxButtons = 7;
-      const buttons = [];
-
-      function addButton(label, page, isActive = false) {
-        const btn = document.createElement("button");
-        btn.textContent = label;
-        if (isActive) btn.classList.add("active");
-        btn.addEventListener("click", () => {
-          if (page !== currentPage) {
-            searchLeika(currentQuery, page);
-          }
-        });
-        paginationDiv.appendChild(btn);
-      }
-
-      if (currentPage > 1) {
-        addButton("«", currentPage - 1);
-      }
-
-      const range = [];
-
-      if (totalPages <= maxButtons + 2) {
-        for (let i = 1; i <= totalPages; i++) range.push(i);
-      } else {
-        range.push(1);
-        if (currentPage > 4) range.push("...");
-        const start = Math.max(2, currentPage - 2);
-        const end = Math.min(totalPages - 1, currentPage + 2);
-        for (let i = start; i <= end; i++) range.push(i);
-        if (currentPage < totalPages - 3) range.push("...");
-        range.push(totalPages);
-      }
-
-      range.forEach(i => {
-        if (i === "...") {
-          const span = document.createElement("span");
-          span.textContent = "...";
-          span.style.padding = "6px 10px";
-          paginationDiv.appendChild(span);
-        } else {
-          addButton(i, i, i === currentPage);
-        }
+    function copyUrn(el, text) {
+      navigator.clipboard.writeText(text).then(() => {
+        const original = el.textContent;
+        el.textContent = "✔ Kopiert!";
+        el.style.backgroundColor = "#d4edda";
+        el.style.color = "#155724";
+        setTimeout(() => {
+          el.textContent = original;
+          el.style.backgroundColor = "";
+          el.style.color = "";
+        }, 1200);
       });
-
-      if (currentPage < totalPages) {
-        addButton("»", currentPage + 1);
-      }
     }
-
-function copyUrn(el, text) {
-  navigator.clipboard.writeText(text).then(() => {
-    const original = el.textContent;
-    el.textContent = "✔ Kopiert!";
-    el.style.backgroundColor = "#d4edda";
-    el.style.color = "#155724";
-    setTimeout(() => {
-      el.textContent = original;
-      el.style.backgroundColor = "";
-      el.style.color = "";
-    }, 1200);
-  });
-}
 </script>
 </body>
 </html>
