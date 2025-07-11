@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="utf-8"/>
-    <title>LeiKa-Suche (API-Version)</title>
+    <title>LeiKa-Suche (API + Pagination)</title>
     <style>
         body {
           font-family: Arial, sans-serif;
@@ -69,20 +69,49 @@
           border-radius: 4px;
           cursor: pointer;
         }
+        .pagination {
+          display: flex;
+          justify-content: center;
+          margin-top: 24px;
+          gap: 6px;
+          flex-wrap: wrap;
+        }
+        .pagination button {
+          background: #fff;
+          border: 1px solid #ccc;
+          border-radius: 6px;
+          padding: 6px 12px;
+          cursor: pointer;
+          font-size: 14px;
+        }
+        .pagination button.active {
+          background: #2e6da4;
+          color: white;
+          border-color: #2e6da4;
+        }
+        .pagination button:hover {
+          background: #e9eef2;
+        }
     </style>
 </head>
 <body>
 <div class="container">
-    <h1>LeiKa-Suche (API-basiert)</h1>
-    <input id="searchInput" placeholder="z. B. Belehrung" type="text"/>
+    <h1>LeiKa-Suche</h1>
+    <input id="searchInput" placeholder="z. B. Belehrung oder 99003002022000" type="text"/>
     <div class="info" id="info"></div>
     <div class="results" id="results"></div>
+    <div class="pagination" id="pagination"></div>
 </div>
 <script>
     const input = document.getElementById("searchInput");
     const resultsDiv = document.getElementById("results");
     const infoDiv = document.getElementById("info");
+    const paginationDiv = document.getElementById("pagination");
+
     let debounceTimeout;
+    let currentPage = 1;
+    let totalPages = 1;
+    const pageSize = 20;
 
     input.addEventListener("input", () => {
       clearTimeout(debounceTimeout);
@@ -90,9 +119,11 @@
       if (!query) {
         resultsDiv.innerHTML = "";
         infoDiv.textContent = "";
+        paginationDiv.innerHTML = "";
         return;
       }
       debounceTimeout = setTimeout(() => {
+        currentPage = 1;
         searchLeikaAPI(query);
       }, 400);
     });
@@ -100,8 +131,11 @@
     async function searchLeikaAPI(term) {
       infoDiv.textContent = "🔍 Suche läuft…";
       resultsDiv.innerHTML = "";
+      paginationDiv.innerHTML = "";
+
       try {
-        const url = `https://www.fimportal.de/api/v0/services?fts_query=${encodeURIComponent(term)}&order_by=relevance&offset=0&limit=200`;
+        const offset = (currentPage - 1) * pageSize;
+        const url = `https://www.fimportal.de/api/v0/services?fts_query=${encodeURIComponent(term)}&order_by=relevance&offset=${offset}&limit=${pageSize}`;
         const res = await fetch(url, { headers: { accept: "application/json" }});
         const data = await res.json();
 
@@ -110,6 +144,7 @@
           return;
         }
 
+        totalPages = Math.ceil(data.total_count / pageSize);
         infoDiv.innerHTML = `📄 Gefundene Leistungen: <strong>${data.total_count}</strong>`;
 
         data.items.forEach(item => {
@@ -127,9 +162,48 @@
           `;
           resultsDiv.appendChild(card);
         });
+
+        renderPagination(term);
       } catch (e) {
         console.error("API-Fehler:", e);
         infoDiv.textContent = "❌ Fehler beim Abrufen.";
+      }
+    }
+
+    function renderPagination(term) {
+      paginationDiv.innerHTML = "";
+      if (totalPages <= 1) return;
+
+      function createButton(label, page, isActive = false) {
+        const btn = document.createElement("button");
+        btn.textContent = label;
+        if (isActive) btn.classList.add("active");
+        btn.addEventListener("click", () => {
+          if (page !== currentPage) {
+            currentPage = page;
+            searchLeikaAPI(term);
+          }
+        });
+        paginationDiv.appendChild(btn);
+      }
+
+      if (currentPage > 1) {
+        createButton("«", currentPage - 1);
+      }
+
+      for (let i = 1; i <= totalPages; i++) {
+        if (i === 1 || i === totalPages || Math.abs(i - currentPage) <= 2) {
+          createButton(i, i, i === currentPage);
+        } else if ((i === 2 && currentPage > 4) || (i === totalPages - 1 && currentPage < totalPages - 3)) {
+          const dots = document.createElement("span");
+          dots.textContent = "...";
+          dots.style.padding = "0 6px";
+          paginationDiv.appendChild(dots);
+        }
+      }
+
+      if (currentPage < totalPages) {
+        createButton("»", currentPage + 1);
       }
     }
 
