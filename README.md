@@ -4,7 +4,7 @@ Dieses Projekt bietet eine  Weboberfläche zur Suche und Anzeige von LeiKa-Leist
 
 ## 🔍 Funktionen
 
-- Durchsuchung von `fimportal.de`-Leistungen per Stichwort
+- Abfrage über `fimportal.de`-API per Titel
 - Anzeige der LeiKa-ID und erzeugte URN
 - Pagination über alle Ergebnisse
 - Direkte Kopierfunktion der URN
@@ -12,7 +12,6 @@ Dieses Projekt bietet eine  Weboberfläche zur Suche und Anzeige von LeiKa-Leist
 ## 🛠 Aufbau
 
 - Die HTML-Datei ist unter `leika.html` zu finden.
-- Beispielhafte NGINX-Konfiguration zur CORS-Umgehung unter `nginx.conf`
 
 ## ⚖️ Lizenz
 
